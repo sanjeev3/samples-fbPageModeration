@@ -67,6 +67,16 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
             break;
         }
         case "status":
+        case "comment":
+            var commentId = (string)eventObject["comment_id"];
+            var comment = (string)eventObject["message"];
+            if(!string.IsNullOrWhiteSpace(comment))
+            {
+                log.Info("Pushing Text for Moderation");
+                var jobId = await CreateContentModerationJob(log, commentId, "text", comment);
+                log.Info($"CM Text JobId: {jobId}");
+            }
+            break;
         case "post":{            
             var text = (string)eventObject["message"];
             if(!string.IsNullOrWhiteSpace(text))
@@ -110,7 +120,7 @@ private static async Task<string> CreateContentModerationJob(TraceWriter log, st
         case "image": { workflowName = GetEnvironmentVariable("cm:ImageWorkflow"); break;}
     }
 
-    var cmUrl = $"https://{region}.api.cognitive.microsoft.com/contentmoderator/review/v1.0/teams/{teamId}/jobs?ContentType={contentType}&ContentId={postId}&WorkflowName={workflowName}&CallBackEndpoint={callbackEndpoint}";             
+    var cmUrl = $"https://contentmoderatortest.azure-api.net/contentmoderator/review/v1.0/teams/{teamId}/jobs?ContentType={contentType}&ContentId={postId}&WorkflowName={workflowName}&CallBackEndpoint={callbackEndpoint}";             
     log.Info(cmUrl);
 
     var client = new HttpClient();    
